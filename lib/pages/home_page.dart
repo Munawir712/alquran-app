@@ -1,5 +1,6 @@
 import 'package:alquran_app/model/al-quran/list_alquran.dart';
 import 'package:alquran_app/pages/detail_surah_page.dart';
+import 'package:alquran_app/pages/hadits_page.dart';
 import 'package:alquran_app/pages/searchItem/search_surah.dart';
 import 'package:alquran_app/services/al-quran_services.dart';
 import 'package:alquran_app/theme.dart';
@@ -22,77 +23,97 @@ class _HomePageState extends State<HomePage> {
 
 	@override
 	Widget build(BuildContext context) {
-		return Scaffold(
-			backgroundColor: Colors.lightBlue,
-			appBar: AppBar(
-				title: Text("Al-Quran App"),
-				elevation: 0,
-				backgroundColor: Colors.lightBlue,
-				centerTitle: true,
-				actions: [
-					IconButton(
-						icon: Icon(Icons.search), 
-						onPressed: () => showSearch(context: context, delegate: SearchSurah())
-					)
-				],
-			),
-			body: FutureBuilder<List<ListAlQuran>>(
-				future: AlQuranServices.getListAlquran(),
-				builder: (context, snapshot) {
-					if(snapshot.hasData) {
-						listAlquran = snapshot.data;
-						return ListView.separated(
-							padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-							itemCount: listAlquran.length,
-							separatorBuilder: (context, index) => SizedBox(height: 10), 
-							itemBuilder: (context, index) {
-								return InkWell(
-									onTap: () => Navigator.push(context, MaterialPageRoute(
-										builder: (context) => DetailSurahPage(idSurah: listAlquran[index].number, nameSurah: listAlquran[index].name.transliteration.id,)
-										)
-									),
-								  child: Container(
-								  	decoration: BoxDecoration(
-								  		color: Colors.white,
-								  		borderRadius: BorderRadius.circular(6),
-								  		boxShadow: [
-								  			BoxShadow(
-								  				color: Colors.black12.withOpacity(0.3),
-								  				blurRadius: 2.1,
-								  			),
-								  		]
-								  	),
-								    child: ListTile(
-								    	leading: Container(
-												height: 50,
-												width: 50,
-												alignment: Alignment.center,
-												decoration: BoxDecoration(
-													shape: BoxShape.circle,
-													color: Colors.white,
-													// border: Border.all(),
-													image: DecorationImage(
-														image: AssetImage("assets/segidelapan.png"),
-														fit: BoxFit.cover,
-													)
-												),
-												child: Text(listAlquran[index].number.toString(), style: TextStyle(fontSize: 14, color: Colors.lightBlue),),
-											),
-								    	title: Text(listAlquran[index].name.transliteration.id),
-								    	subtitle: Text(
-								    		"${listAlquran[index].name.translation.id} | ${listAlquran[index].numberOfVerses} Ayat"
-								    	),
-								    	trailing: Text(listAlquran[index].name.short, style: arabicFont.copyWith(fontSize: 24),),
-								    ),
-								  ),
-								);
-							}, 
-						);
-					} else {
-						return Center(child: CircularProgressIndicator(),);
-					}
-				},
-			),
+		return DefaultTabController(
+			length: 2,
+		  child: Scaffold(
+		  	backgroundColor: Colors.lightBlue,
+		  	appBar: AppBar(
+		  		title: Text("Al-Quran App"),
+		  		elevation: 0,
+		  		backgroundColor: Colors.lightBlue,
+		  		centerTitle: true,
+		  		actions: [
+		  			IconButton(
+		  				icon: Icon(Icons.search), 
+		  				onPressed: () => showSearch(context: context, delegate: SearchSurah())
+		  			)
+		  		],
+					bottom: TabBar(
+						indicatorColor: Colors.white,
+						indicatorSize: TabBarIndicatorSize.label,
+						tabs: [
+							Tab(
+								text: "Al-Quran",
+							),
+							Tab(
+								text: "Hadits",
+							),
+						],
+					),
+		  	),
+		  	body: TabBarView(
+		  	  children: [
+		  	    FutureBuilder<List<ListAlQuran>>(
+		  	    	future: AlQuranServices.getListAlquran(),
+		  	    	builder: (context, snapshot) {
+		  	    		if(snapshot.hasData) {
+		  	    			listAlquran = snapshot.data;
+		  	    			return ListView.separated(
+		  	    				padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+		  	    				itemCount: listAlquran.length,
+		  	    				separatorBuilder: (context, index) => SizedBox(height: 10), 
+		  	    				itemBuilder: (context, index) {
+		  	    					return InkWell(
+		  	    						onTap: () => Navigator.push(context, MaterialPageRoute(
+		  	    							builder: (context) => DetailSurahPage(idSurah: listAlquran[index].number, nameSurah: listAlquran[index].name.transliteration.id,)
+		  	    							)
+		  	    						),
+		  	    					  child: Container(
+		  	    					  	decoration: BoxDecoration(
+		  	    					  		color: Colors.white,
+		  	    					  		borderRadius: BorderRadius.circular(6),
+		  	    					  		boxShadow: [
+		  	    					  			BoxShadow(
+		  	    					  				color: Colors.black12.withOpacity(0.3),
+		  	    					  				blurRadius: 2.1,
+		  	    					  			),
+		  	    					  		]
+		  	    					  	),
+		  	    					    child: ListTile(
+		  	    					    	leading: Container(
+		  	    									height: 50,
+		  	    									width: 50,
+		  	    									alignment: Alignment.center,
+		  	    									decoration: BoxDecoration(
+		  	    										shape: BoxShape.circle,
+		  	    										color: Colors.white,
+		  	    										// border: Border.all(),
+		  	    										image: DecorationImage(
+		  	    											image: AssetImage("assets/segidelapan.png"),
+		  	    											fit: BoxFit.cover,
+		  	    										)
+		  	    									),
+		  	    									child: Text(listAlquran[index].number.toString(), style: TextStyle(fontSize: 14, color: Colors.lightBlue),),
+		  	    								),
+		  	    					    	title: Text(listAlquran[index].name.transliteration.id),
+		  	    					    	subtitle: Text(
+		  	    					    		"${listAlquran[index].name.translation.id} | ${listAlquran[index].numberOfVerses} Ayat"
+		  	    					    	),
+		  	    					    	trailing: Text(listAlquran[index].name.short, style: arabicFont.copyWith(fontSize: 24),),
+		  	    					    ),
+		  	    					  ),
+		  	    					);
+		  	    				}, 
+		  	    			);
+		  	    		} else {
+		  	    			return Center(child: CircularProgressIndicator(),);
+		  	    		}
+		  	    	},
+		  	    ),
+						HaditsPage()
+		  	  ],
+		  	),
+		  ),
 		);
 	}
 }

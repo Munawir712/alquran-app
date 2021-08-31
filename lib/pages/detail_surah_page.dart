@@ -3,6 +3,7 @@ import 'package:alquran_app/services/al-quran_services.dart';
 import 'package:alquran_app/theme.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class DetailSurahPage extends StatefulWidget {
 	final int idSurah;
@@ -15,6 +16,7 @@ class DetailSurahPage extends StatefulWidget {
 
 class _DetailSurahPageState extends State<DetailSurahPage> {
 	AudioPlayer audioPlayer = AudioPlayer();
+	ScrollController scrollController = ScrollController();
 	DetailSurah detailSurah;
 	List<Verse> listSurah;
 	int indexAudio = 0;
@@ -22,26 +24,33 @@ class _DetailSurahPageState extends State<DetailSurahPage> {
 	int ayat = 0;
 	int _currentSelectedAyat = -1;
 	bool autoPlay = false;
-	bool showButtomPlay = false;
+	bool showButtomPlay = true;
 
 	@override
   void initState() {
     super.initState();
 		ayatEnd();
 		// getDetailSurah();
+		// scrollController.addListener(listenScrollUp);
   }
 
-	void getDetailSurah() async {
-		detailSurah = await AlQuranServices.getDetailSurah(widget.idSurah);
-		setState(() {});
-	}
+	// listenScrollUp() {
+	// 	final direction = scrollController.position.userScrollDirection;
+	// 		if(direction == ScrollDirection.reverse) {
+	// 			setState(() {
+	// 			  showButtomPlay = false;
+	// 			});	
+	// 		} else {
+	// 			setState(() {
+	// 			  showButtomPlay = true;
+	// 			});
+	// 		} 
+	// }
 
 	void ayatEnd() {
 		audioPlayer.onPlayerCompletion.listen((event) { 
 			setState(() {
 			  _currentSelectedAyat = -1;
-				indexAudio = 0;
-				ayat = indexAudio;
 			});
 			if(autoPlay) {
 				autoPlayAyat();
@@ -78,7 +87,7 @@ class _DetailSurahPageState extends State<DetailSurahPage> {
 	@override
 	Widget build(BuildContext context) {
 		return Scaffold(
-			backgroundColor: Colors.red,
+			// backgroundColor: Colors.red,
 			appBar: AppBar(
 				title: Text(widget.nameSurah),
 				centerTitle: true,
@@ -114,8 +123,25 @@ class _DetailSurahPageState extends State<DetailSurahPage> {
 						return Stack(
 						  children: [
 						    ListView(
-						    	// padding: EdgeInsets.symmetric(vertical: 10, ),
+									controller: scrollController,
 						      children: [
+										Container(
+											padding: EdgeInsets.symmetric(horizontal: 11),
+											color: Colors.lightBlue.shade200,
+											child: Row(
+												mainAxisAlignment: MainAxisAlignment.spaceBetween,
+												children: [
+													Text(
+														"${detailSurah.numberOfVerses} Ayat",
+														style: arabicFont.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+													),
+													Text(
+														"Juz " + detailSurah.verses.first.meta.juz.toString(),
+														style: arabicFont.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+													),
+												],
+											),
+										),
 						    		detailSurah.number == 1 
 						    		? Container() 
 						    		: Container(
@@ -143,20 +169,27 @@ class _DetailSurahPageState extends State<DetailSurahPage> {
 																ayat = indexAudio;
 															});
 														},
-						    					  child: SurahItem(surah: surah, color: index % 2 == 0 ? Colors.lightBlue.shade50 : Colors.white),
+						    					  child: Stack(
+						    					    children: [
+						    					      SurahItem(surah: surah, enable: _currentSelectedAyat == indexAudio && indexAudio == index, color: index % 2 == 0 ? Colors.lightBlue.shade50 : Colors.white),
+																if(_currentSelectedAyat == indexAudio && indexAudio == index)
+																	Positioned(
+																		left: 5,
+																		top: 5,
+																		child: Text("Playing ...", style: TextStyle(color: Colors.blue)),
+																	),
+						    					    ],
+						    					  ),
 						    					);
 						          	}, 
 						          ),
 						        ),
-										SizedBox(height: 100,)
+										showButtomPlay ? SizedBox(height: 100,) : SizedBox()
 						      ],
 						    ),
 								Align(
 									alignment: Alignment.bottomCenter,
-								  child: BottomAppBar(
-								  	color: Colors.lightBlue,
-								  	child: showButtomPlay ? playAudioSurah() : SizedBox(),
-								  ),
+								  child: showButtomPlay ? playAudioSurah() : SizedBox(),
 								),
 								
 						  ],
@@ -173,6 +206,7 @@ class _DetailSurahPageState extends State<DetailSurahPage> {
 	return Container(
 		padding: EdgeInsets.symmetric(vertical: 8),
 		height: 100,
+		decoration: BoxDecoration(color: Colors.lightBlue, borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
 		child: Column(
 			mainAxisSize: MainAxisSize.min,
 			children: [
@@ -182,7 +216,7 @@ class _DetailSurahPageState extends State<DetailSurahPage> {
 					mainAxisAlignment: MainAxisAlignment.spaceEvenly,
 					children: [
 						IconButton(
-							icon: Icon(Icons.skip_previous, color: Colors.white,), 
+							icon: Icon(Icons.skip_previous_rounded, color: Colors.white,), 
 							onPressed: () async {
 								setState(() {
 									indexAudio == 0 ? indexAudio = urlAudio.length -1 : indexAudio-- ;
@@ -257,7 +291,8 @@ class _DetailSurahPageState extends State<DetailSurahPage> {
 class SurahItem extends StatelessWidget {
 	final Color color;
 	final Verse surah;
-	const SurahItem({ Key key, this.surah, this.color }) : super(key: key);
+	final enable;
+	const SurahItem({ Key key, this.surah, this.color, this.enable = true }) : super(key: key);
 
 	@override
 	Widget build(BuildContext context) {
@@ -268,6 +303,7 @@ class SurahItem extends StatelessWidget {
 				// borderRadius: BorderRadius.circular(6)
 			),
 			child: ListTile(
+				selected: enable,
 				leading: Container(
 					height: 30,
 					width: 30,
